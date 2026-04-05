@@ -1,1 +1,3 @@
 chatbot-ecommerce/.env
+django-login/.env
+django-login/staticfiles/
