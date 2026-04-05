@@ -1,13 +1,26 @@
 <!DOCTYPE html>
 {% extends 'accounts/base.html' %}
-{% block title %}Register{% endblock %}
+{% load static %}
+{% block title %}Register — Lushlyrics{% endblock %}
 {% block content %}
-    <h2 class="mb-4 text-center">Create an account</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-success w-100">Register</button>
-    </form>
-    <hr>
-    <p class="text-center">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="icon">🎵</span>
+            <h2>Create account</h2>
+            <p>Join Lushlyrics today</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field-group">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="btn-auth">Create account →</button>
+        </form>
+        <div class="divider"><span>or</span></div>
+        <div class="auth-links">
+            <p>Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+        </div>
+    </div>
+</div>
 {% endblock %}
