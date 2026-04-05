@@ -13,19 +13,31 @@ function addMessage(content, role) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'message assistant';
+    div.id = 'typing-msg';
+    div.innerHTML = `
+        <div class="typing-indicator">
+            <span></span><span></span><span></span>
+        </div>
+    `;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function hideTyping() {
+    const el = document.getElementById('typing-msg');
+    if (el) el.remove();
+}
+
 async function sendMessage() {
     const message = userInput.value.trim();
     if (!message) return;
 
     addMessage(message, 'user');
     userInput.value = '';
-
-    const typing = document.createElement('div');
-    typing.className = 'typing';
-    typing.id = 'typing';
-    typing.textContent = 'Kai réfléchit...';
-    chatMessages.appendChild(typing);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    showTyping();
 
     const response = await fetch('/chat', {
         method: 'POST',
@@ -33,7 +45,7 @@ async function sendMessage() {
         body: JSON.stringify({ message })
     });
 
-    document.getElementById('typing')?.remove();
+    hideTyping();
 
     const data = await response.json();
     addMessage(data.response, 'assistant');

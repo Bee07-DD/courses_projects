@@ -11,6 +11,12 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 with open("products.json", "r", encoding="utf-8") as f:
     PRODUCTS = json.load(f)
+    
+    # Résumé léger du catalogue pour le prompt
+catalogue_resume = "\n".join([
+    f"- {p['name']} ({p['brand']}) | {p['category']} | {p['price']:,} FCFA | Stock: {p['stock']}"
+    for p in PRODUCTS
+])
 
 SYSTEM_PROMPT = f"""
 Tu es Kai, le conseiller virtuel de Kronos — une boutique de montres premium ciblant le marché africain.
@@ -33,7 +39,7 @@ WHATSAPP - RÈGLE STRICTE :
 - Lien : https://wa.me/237600000000
 
 CATALOGUE COMPLET :
-{json.dumps(PRODUCTS, ensure_ascii=False, indent=2)}
+{catalogue_resume}
 
 AUTRES INFOS :
 - Prix en FCFA
@@ -59,7 +65,7 @@ def chat():
     })
 
     response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             *conversation_history
