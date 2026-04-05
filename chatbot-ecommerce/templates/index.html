@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kronos Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="logo">⌚</div>
+            <div>
+                <h4>KRONOS ASSISTANT</h4>
+                <p>Votre conseiller personnel en montres</p>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <div class="bubble">Bonjour ! Je suis Kai, votre conseiller Kronos. Comment puis-je vous aider aujourd'hui ? 😊</div>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Posez votre question..." />
+            <button onclick="sendMessage()">Envoyer</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>
