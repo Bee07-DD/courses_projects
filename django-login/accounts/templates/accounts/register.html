@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html>
-<head><title>Register</title></head>
-<body>
-    <h2>Create an account</h2>
+{% extends 'accounts/base.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+    <h2 class="mb-4 text-center">Create an account</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Register</button>
+        <button type="submit" class="btn btn-success w-100">Register</button>
     </form>
-    <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
-</body>
-</html>
+    <hr>
+    <p class="text-center">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+{% endblock %}

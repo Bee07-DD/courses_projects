@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html>
-<head><title>Dashboard</title></head>
-<body>
-    <h2>Welcome, {{ request.user.username }}!</h2>
-    <p>You are logged in.</p>
-    <a href="{% url 'logout' %}">Logout</a>
-</body>
-</html>
+{% extends 'accounts/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+    <h2 class="mb-3 text-center">Welcome, {{ request.user.username }}!</h2>
+    <p class="text-center text-muted">You are logged in to Lushlyrics.</p>
+    <a href="{% url 'logout' %}" class="btn btn-danger w-100">Logout</a>
+{% endblock %}
