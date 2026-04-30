@@ -33,3 +33,4 @@ typing_extensions==4.15.0
 urllib3==1.26.20
 Werkzeug==3.1.8
 youtube-search==1.1.1
+yt-dlp==2026.3.17

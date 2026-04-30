@@ -19,3 +19,8 @@ sdist/
 var/
 .env
 .cache
+Downloads/
+SPFY_PLAYLISTS/
+playlists_summary.csv
+spotify_downloader.log
+playlists.json

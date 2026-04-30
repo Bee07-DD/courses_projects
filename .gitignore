@@ -1,3 +1,5 @@
 chatbot-ecommerce/.env
 django-login/.env
 django-login/staticfiles/
+.cache/
+.cache
