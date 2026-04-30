@@ -1,4 +1,4 @@
-# Téléchargeur de Playlists Spotify (sans API)
+# Téléchargeur de Playlists Spotify 
 
 Ce projet fournit un script Python pour télécharger des pistes musicales à partir de playlists Spotify exportées, sans utiliser l'API Spotify ni aucune autre API payante. Il s'appuie sur `yt-dlp` pour extraire l'audio de sources publiques comme YouTube et YouTube Music, en offrant plusieurs stratégies de recherche (fallbacks) pour maximiser les chances de succès. Les musiques téléchargées sont organisées automatiquement dans des dossiers distincts pour chaque playlist.
 
