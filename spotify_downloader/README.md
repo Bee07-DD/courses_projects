@@ -1,144 +1,182 @@
-# Téléchargeur de Playlists Spotify 
+#  Spotify Playlist Downloader
 
-Ce projet fournit un script Python pour télécharger des pistes musicales à partir de playlists Spotify exportées, sans utiliser l'API Spotify ni aucune autre API payante. Il s'appuie sur `yt-dlp` pour extraire l'audio de sources publiques comme YouTube et YouTube Music, en offrant plusieurs stratégies de recherche (fallbacks) pour maximiser les chances de succès. Les musiques téléchargées sont organisées automatiquement dans des dossiers distincts pour chaque playlist.
+> Télécharge et écoute tes playlists Spotify exportées — sans API, sans abonnement payant.
+
+Un outil Python avec interface graphique pour convertir tes playlists Spotify exportées en fichiers audio MP3 locaux, organisés par playlist, avec un lecteur audio intégré.
+
+---
+
+## Aperçu de l'interface
+
+
+![Interface Spotify Downloader](/spotify_downloader/screeshots/preview.png)
+
+---
 
 ## Table des Matières
 
-1.  [Prérequis](#1-prérequis)
-2.  [Génération du fichier `playlists.json`](#2-génération-du-fichier-playlistsjson)
-3.  [Utilisation du script `download_playlists.py`](#3-utilisation-du-script-download_playlistspy)
-    *   [Description](#description)
-    *   [Installation des dépendances](#installation-des-dépendances)
-    *   [Exécution](#exécution)
-    *   [Stratégies de Fallback](#stratégies-de-fallback)
-    *   [Structure des dossiers de sortie](#structure-des-dossiers-de-sortie)
-4.  [Notes Importantes](#4-notes-importantes)
+1. [Prérequis](#1-prérequis)
+2. [Installation](#2-installation)
+3. [Workflow complet](#3-workflow-complet)
+   - [Étape 1 — Exporter les playlists depuis Spotify](#étape-1--exporter-les-playlists-depuis-spotify)
+   - [Étape 2 — Lancer l'application](#étape-2--lancer-lapplication)
+   - [Étape 3 — Extraire les données CSV](#étape-3--extraire-les-données-csv)
+   - [Étape 4 — Parcourir, télécharger et écouter](#étape-4--parcourir-télécharger-et-écouter)
+4. [Architecture du projet](#4-architecture-du-projet)
+5. [Fonctionnement interne](#5-fonctionnement-interne)
+   - [Extraction (`extraction.py`)](#extraction-extractionpy)
+   - [Téléchargement (`downloader.py`)](#téléchargement-downloaderpy)
+   - [Lecture audio (`player.py`)](#lecture-audio-playerpy)
+6. [Structure des dossiers de sortie](#6-structure-des-dossiers-de-sortie)
+7. [Notes importantes](#7-notes-importantes)
+
+---
 
 ## 1. Prérequis
 
-Pour utiliser ce script, vous devez avoir les éléments suivants installés sur votre système :
+- **Python 3.10+**
+- **pip**
+- **ffmpeg** (requis pour l'extraction des pochettes et la conversion audio)
+- **yt-dlp** (téléchargement audio depuis YouTube / YouTube Music)
 
-*   **Python 3.x** : Le script est écrit en Python.
-*   **pip** : Le gestionnaire de paquets pour Python, généralement inclus avec Python 3.x.
-*   **yt-dlp** : Un outil en ligne de commande pour télécharger des vidéos et de l'audio à partir de nombreux sites web. Il est utilisé par le script pour effectuer les téléchargements.
-
-Vous pouvez vérifier si Python et pip sont installés en ouvrant un terminal et en tapant :
+Vérifier les installations :
 
 ```bash
 python3 --version
-pip3 --version
+ffmpeg -version
+yt-dlp --version
 ```
 
-Si `yt-dlp` n'est pas installé, vous pouvez le faire via pip :
+---
+
+## 2. Installation
 
 ```bash
-pip3 install yt-dlp
+# Cloner le projet
+git clone https://github.com/Bee07-DD/courses_projects/spotify_downloader
+cd spotify_downloader
+
+# Installer les dépendances Python
+pip3 install customtkinter pillow pygame pandas yt-dlp
 ```
 
-## 2. Génération du fichier `playlists.json`
+> **ffmpeg** doit être installé séparément selon ton OS :
+> - Ubuntu/Debian : `sudo apt install ffmpeg`
+> - macOS : `brew install ffmpeg`
+> - Windows : [ffmpeg.org](https://ffmpeg.org/download.html)
 
-Le script `download_playlists.py` s'appuie sur un fichier `playlists.json` qui contient les informations détaillées de vos playlists Spotify. Ce fichier est généré à partir de fichiers CSV exportés via **Exportify**.
+---
 
-Voici le processus général :
+## 3. Workflow complet
 
-1.  **Exportez vos playlists Spotify avec Exportify** : Rendez-vous sur [Exportify](https://exportify.net/) et suivez les instructions pour exporter vos playlists au format CSV. Enregistrez tous les fichiers CSV dans un dossier dédié.
-2.  **Utilisez le script `extract.py`** : Ce script lit les fichiers CSV situés dans `SPFY_PLAYLISTS/` et génère `playlists.json` ainsi que `playlists_summary.csv`.
+### Étape 1 — Exporter les playlists depuis Spotify
 
-Le fichier `playlists.json` doit avoir la structure suivante (exemple simplifié) :
-
-```json
-{
-  "Nom de la Playlist 1": {
-    "source_csv": "Nom_de_la_Playlist_1.csv",
-    "track_count": 10,
-    "tracks": [
-      {
-        "Track Name": "Titre de la Chanson 1",
-        "Artist Name(s)": "Artiste 1",
-        "Album Name": "Album 1"
-      },
-      {
-        "Track Name": "Titre de la Chanson 2",
-        "Artist Name(s)": ["Artiste 2", "Artiste 3"],
-        "Album Name": "Album 2"
-      }
-    ]
-  },
-  "Nom de la Playlist 2": {
-    // ... autres pistes
-  }
-}
-```
-
-## 3. Utilisation du script `download_playlists.py`
-
-### Description
-
-Le script `download_playlists.py` lit le fichier `playlists.json`, itère sur chaque playlist et chaque piste, puis tente de télécharger l'audio correspondant en utilisant `yt-dlp`. Il gère les noms de fichiers et de dossiers pour éviter les caractères non valides et organise les téléchargements.
-
-### Installation des dépendances
-
-Assurez-vous que `yt-dlp` est installé comme mentionné dans la section [Prérequis](#1-prérequis).
-
-### Exécution
-
-Pour exécuter le script, placez le fichier `download_playlists.py` et votre fichier `playlists.json` (généré précédemment) dans le même répertoire. Ensuite, ouvrez un terminal dans ce répertoire et exécutez la commande suivante :
-
-```bash
-python3 download_playlists.py [chemin/vers/playlists.json]
-```
-
-Si `playlists.json` se trouve dans le même répertoire que le script, vous pouvez simplement exécuter :
-
-```bash
-python3 download_playlists.py
-```
-
-Le script affichera la progression du téléchargement dans le terminal.
-
-### Stratégies de Fallback
-
-Le script utilise une approche de fallback pour trouver et télécharger les pistes. Pour chaque piste, il essaie les requêtes de recherche suivantes dans l'ordre :
-
-1.  `ytsearch1:official audio {Artiste(s)} - {Titre de la Chanson} ({Nom de l'Album})` : Tente de trouver la version audio officielle sur YouTube Music.
-2.  `ytsearch1:{Artiste(s)} - {Titre de la Chanson} ({Nom de l'Album})` : Recherche générale sur YouTube avec les détails complets.
-3.  `ytsearch1:{Artiste(s)} {Titre de la Chanson}` : Recherche plus large sur YouTube si les précédentes échouent.
-
-Si une recherche réussit, le téléchargement est effectué et le script passe à la piste suivante. Si toutes les stratégies échouent pour une piste, un message d'échec est affiché, et le script continue avec la piste suivante.
-
-### Structure des dossiers de sortie
-
-Toutes les musiques téléchargées seront enregistrées dans un dossier `Downloads` créé à la racine du projet. À l'intérieur de ce dossier, un sous-dossier sera créé pour chaque playlist, portant le nom de la playlist (sanitized). Par exemple :
+1. Rendez-vous sur **[Exportify](https://exportify.net/)** et connectez-vous avec votre compte Spotify.
+2. Exportez vos playlists au format **CSV**.
+3. Placez tous les fichiers `.csv` dans le dossier `SPFY_PLAYLISTS/` à la racine du projet.
 
 ```
-./
-├── download_playlists.py
-├── playlists.json
-└── Downloads/
-    ├── BEST_OF_NF🔥🖤/
-    │   ├── NF - Thing Called Love.mp3
-    │   ├── NF - Mansion.mp3
-    │   └── ...
-    ├── Ma Super Playlist/
-    │   ├── Artiste X - Titre Y.mp3
-    │   └── ...
+spotify_downloader/
+└── SPFY_PLAYLISTS/
+    ├── Ma Playlist Rap.csv
+    ├── BEST_OF_NF.csv
     └── ...
 ```
 
-## 4. Notes Importantes
+### Étape 2 — Lancer l'application
 
-*   **Qualité Audio** : Le script télécharge l'audio avec la meilleure qualité disponible (`--audio-quality 0` de `yt-dlp`), généralement au format MP3.
-*   **Légalité** : Le téléchargement de contenu protégé par des droits d'auteur sans autorisation peut être illégal dans votre juridiction. Ce script est fourni à des fins éducatives et personnelles uniquement. L'utilisateur est seul responsable de l'utilisation qu'il en fait.
-*   **Fiabilité** : Bien que les stratégies de fallback augmentent les chances de succès, il n'est pas garanti que toutes les pistes soient trouvées et téléchargées, notamment si elles ne sont pas disponibles sur les plateformes de streaming vidéo publiques.
-*   **Nommage des fichiers** : Les noms de fichiers sont nettoyés pour supprimer les caractères spéciaux, mais des problèmes peuvent survenir avec des noms de pistes ou d'artistes très complexes. Si un téléchargement échoue, vérifiez le nom de la piste dans le fichier JSON.
+```bash
+python3 main.py
+```
 
-## Fonctionnalités complémentaires
+L'interface graphique s'ouvre. Si un fichier `playlists.json` existe déjà, les playlists sont chargées automatiquement dans la barre latérale.
 
-*   Génération automatique de `playlists.json` depuis des exports CSV Spotify.
-*   Organisation des téléchargements par playlist.
-*   Succession de requêtes de recherche pour améliorer la robustesse.
-*   Archivage des métadonnées de chaque playlist dans `playlists_summary.csv`.
+### Étape 3 — Extraire les données CSV
 
-## Objectif du projet
+Cliquer sur **"Extraire CSV"** dans la sidebar. Le module `PlaylistExtractor` lit tous les `.csv` du dossier `SPFY_PLAYLISTS/`, génère `playlists.json` et rafraîchit automatiquement la liste des playlists.
 
-Ce projet répond au besoin d'écoute hors ligne en transformant des playlists Spotify exportées en fichiers audio locaux, sans dépendre d'API externes payantes. Il offre un workflow simple et autonome, facilement personnalisable pour des usages personnels.
+### Étape 4 — Parcourir, télécharger et écouter
+
+- **Sélectionner une playlist** dans la sidebar pour afficher ses pistes.
+- Les pistes déjà téléchargées apparaissent en **vert** 🟢 avec un bouton **▶** pour lire.
+- Les pistes non téléchargées ont un bouton **↓** pour lancer le téléchargement individuel.
+- Le bouton **"Tout Télécharger"** (en haut à droite) lance le téléchargement séquentiel de toute la playlist.
+- La **barre de lecture** en bas permet de jouer, mettre en pause, passer à la piste précédente ou suivante.
+- Le **panneau latéral droit** affiche la pochette de l'album et les paroles/sous-titres si disponibles.
+
+---
+
+## 4. Architecture du projet
+
+```
+spotify_downloader/
+├── main.py                  # Point d'entrée — interface graphique (customtkinter)
+├── core/
+│   ├── extraction.py        # Lecture des CSV et génération de playlists.json
+│   ├── downloader.py        # Téléchargement audio via yt-dlp
+│   └── player.py            # Lecture audio via pygame + extraction miniatures ffmpeg
+├── SPFY_PLAYLISTS/          # Dossier des exports CSV Exportify
+├── playlists.json           # Données structurées des playlists (généré automatiquement)
+└── Downloads/               # Fichiers MP3 téléchargés (généré automatiquement)
+```
+
+---
+
+## 5. Fonctionnement interne
+
+### Extraction (`extraction.py`)
+
+La classe `PlaylistExtractor` lit les fichiers CSV Exportify et extrait les colonnes utiles :
+
+`Track URI`, `Track Name`, `Album Name`, `Artist Name(s)`, `Release Date`, `Duration (ms)`, `Popularity`, `Explicit`, `Genres`, `Record Label`
+
+Les champs multi-valeurs (`Artist Name(s)`, `Genres`) sont automatiquement convertis en listes Python. Le résultat est sérialisé dans `playlists.json`.
+
+### Téléchargement (`downloader.py`)
+
+La classe `MusicDownloader` utilise `yt-dlp` en sous-processus avec les options suivantes :
+
+- Format de sortie : **MP3**, qualité maximale (`--audio-quality 0`)
+- Métadonnées intégrées : `--add-metadata`, `--embed-thumbnail`
+- Sous-titres (paroles) : `--write-subs`, `--all-subs`, `--embed-subs`
+
+**Stratégies de recherche (fallback) :**
+
+| Ordre | Requête |
+|-------|---------|
+| 1 | `ytsearch1:official audio {Artiste} - {Titre}` |
+| 2 | `ytsearch1:{Artiste} - {Titre}` |
+
+Si la première stratégie ne produit pas de fichier, la suivante prend le relais. Le succès est confirmé en vérifiant l'existence du fichier de sortie attendu.
+
+### Lecture audio (`player.py`)
+
+La classe `AudioPlayer` utilise **pygame.mixer** pour la lecture MP3 et **ffmpeg** (via subprocess) pour extraire les pochettes intégrées dans les métadonnées. Les fichiers de paroles `.vtt`, `.srt` ou `.txt` portant le même nom de base que le MP3 sont automatiquement détectés et affichés dans le panneau de l'interface.
+
+---
+
+## 6. Structure des dossiers de sortie
+
+```
+Downloads/
+├── BEST_OF_NF/
+│   ├── NF - Mansion.mp3
+│   ├── NF - The Search.mp3
+│   └── ...
+├── Ma Playlist Rap/
+│   ├── Artiste X - Titre Y.mp3
+│   └── ...
+└── ...
+```
+
+Chaque playlist correspond à un sous-dossier dont le nom est assaini (caractères spéciaux supprimés).
+
+---
+
+## 7. Notes importantes
+
+- **Légalité** : Ce projet est fourni à des fins personnelles et éducatives uniquement. Le téléchargement de contenu protégé par des droits d'auteur sans autorisation peut être illégal dans votre juridiction. L'utilisateur est seul responsable de l'utilisation qu'il en fait.
+- **Qualité audio** : La meilleure qualité disponible est sélectionnée automatiquement par `yt-dlp`.
+- **Fiabilité** : Les stratégies de fallback maximisent les chances de succès, mais certaines pistes peu diffusées peuvent rester introuvables.
+- **Emojis** : Les emojis utilisés dans ce projet proviennent de [emojidb.org](https://emojidb.org).
+- **Aucun outil payant** : Ce projet ne dépend d'aucune API payante (ni Spotify, ni autre service tiers).
