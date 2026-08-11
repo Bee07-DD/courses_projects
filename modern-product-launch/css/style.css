@@ -375,7 +375,7 @@ header {
 .hero-image {
   width: 100%;
   height: 620px;
-  background-image: url('./assets/images/carousel.png');
+  background-image: url('../assets/images/carousel.png');
   background-size: cover;
   background-position: center;
   border-radius: 30px;
@@ -686,7 +686,7 @@ header {
   width: 100%;
   max-width: 590px;
   height: 669.38px;
-  background-image: url('./assets/images/balls.png');
+  background-image: url('../assets/images/balls.png');
   background-size: cover;
   background-position: center;
   border-radius: 30px;
